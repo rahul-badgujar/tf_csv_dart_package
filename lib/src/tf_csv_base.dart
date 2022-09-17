@@ -7,13 +7,9 @@ import 'package:tf_csv/src/model/tf_csv_row.dart';
 
 class TfCsv {
   static const List<String> ALLOWED_CSV_FILE_EXTENSIONS = ['csv'];
-  static const List<String> ALLOWED_EXCEL_FILE_EXTENSIONS = [
-    'xlsx',
-    '.xlsm',
-    'xlsb'
-  ];
+  static const List<String> ALLOWED_EXCEL_FILE_EXTENSIONS = ['xlsx'];
 
-  static const DEFAULT_EXCEL_SHEET_NAME = 'default';
+  static const DEFAULT_EXCEL_SHEET_NAME = 'Sheet1';
 
   List<TfCsvRow> rows = [];
 
@@ -67,9 +63,13 @@ class TfCsv {
     return fileBytes;
   }
 
-  Future<List<int>> encodeToExcelFileBytes({String? sheetName}) async {
+  Future<List<int>> encodeToExcelFileBytes(
+      {String? sheetName = DEFAULT_EXCEL_SHEET_NAME}) async {
     final excel = Excel.createExcel();
-    final sheet = excel[sheetName ?? DEFAULT_EXCEL_SHEET_NAME];
+    if (sheetName != DEFAULT_EXCEL_SHEET_NAME) {
+      excel.rename(DEFAULT_EXCEL_SHEET_NAME, sheetName);
+    }
+    final sheet = excel[sheetName];
     for (final tblRow in tabulated) {
       sheet.appendRow(tblRow);
     }
@@ -89,10 +89,10 @@ class TfCsv {
 
   static void _ensureFileExtension(
       String filePath, List<String> allowedExtensions) {
-    assert(
-        allowedExtensions
-            .map((ext) => filePath.endsWith(".$ext"))
-            .any((element) => true),
+    final matchesAnyExtesion = allowedExtensions
+        .map((ext) => filePath.endsWith(".$ext"))
+        .any((e) => e);
+    assert(matchesAnyExtesion,
         'File extension missing or invalid for file path: $filePath, allowed file extensions: $allowedExtensions');
   }
 }
